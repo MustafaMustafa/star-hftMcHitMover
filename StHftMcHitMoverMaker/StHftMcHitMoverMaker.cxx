@@ -69,7 +69,7 @@ Int_t StHftMcHitMover::InitRun(Int_t runNumber)
       mIstDb = static_cast<StIstDb*>(istDbDataSet->GetObject());
    }
 
-   if(!istDbDataSet || !mIstDb)
+   if (!istDbDataSet || !mIstDb)
    {
       LOG_FATAL << "StHftMcHitMover::InitRun() : no istDb - Cannot proceed" << endm;
       return kStErr;
