@@ -22,6 +22,8 @@
 #include "StMcEvent/StMcTrack.hh"
 #include "StMcEvent/StMcPxlHit.hh"
 #include "StMcEvent/StMcPxlHitCollection.hh"
+#include "StMcEvent/StMcIstHit.hh"
+#include "StMcEvent/StMcIstHitCollection.hh"
 #include "StMcEvent/StMcEvent.hh"
 #include "StPxlDbMaker/StPxlDb.h"
 #include "StIstDbMaker/StIstDb.h"
@@ -127,13 +129,41 @@ Int_t StHftMcHitMover::Make()
         double localMomentum[3] = {0.,0.,0.};
         projectToVolume(trk,mcPxlHit,localProjection,localMomentum,volumeM);
 
-        StMcPxlHit* newHit = new StMcPxlHit(localProjection, localMomentum, mcPxlHit->dE(),
+        if(!isOnPxlSensor(localProjection)) continue;
+
+        StMcPxlHit const* const mcProj = new StMcPxlHit(localProjection, localMomentum, mcPxlHit->dE(),
                                             mcPxlHit->dS(), mcPxlHit->tof(),
                                             mcPxlHit->key(), mcPxlHit->volumeId(), trk);
 
         StHistograms::Layer layer = (int)mcPxlHit->ladder() == 1? StHistograms::kPxl1 : StHistograms::kPxl2;
-        hists->addHits(layer,mcPxlHit,newHit);
-        delete newHit;
+        hists->addHits(layer,mcPxlHit,mcProj);
+        delete mcProj;
+      }
+
+      StPtrVecMcIstHit& istHits = trk->istHits();
+
+      for(StMcIstHitIterator iHit = istHits.begin(); iHit != istHits.end(); ++iHit)
+      {
+        StMcIstHit const* const mcIstHit = *iHit;
+
+        if(mcIstHit->localMomentum().mag() < 0.100) continue;
+
+        TGeoHMatrix const* const volumeM = (TGeoHMatrix*)mIstDb->getHMatrixSensorOnGlobal(mcIstHit->ladder(), mcIstHit->wafer());
+        if (!volumeM) continue;
+
+        double localProjection[3] = {0.,0.,0.};
+        double localMomentum[3] = {0.,0.,0.};
+        projectToVolume(trk,mcIstHit,localProjection,localMomentum,volumeM);
+
+        if(!isOnIstSensor(localProjection)) continue;
+
+        StMcIstHit const* const mcProj = new StMcIstHit(localProjection, localMomentum, mcIstHit->dE(),
+                                            mcIstHit->dS(), mcIstHit->tof(),
+                                            mcIstHit->key(), mcIstHit->volumeId(), trk);
+
+        hists->addHits(StHistograms::kIst,mcIstHit,mcProj);
+
+        delete mcProj;
       }
    }
 
