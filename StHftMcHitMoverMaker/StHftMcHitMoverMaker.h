@@ -16,6 +16,9 @@
 
 class StPxlDb;
 class StIstDb;
+class TGeoHMatrix;
+class StMcHit;
+class StMcTrack;
 class StHistograms;
 
 class StHftMcHitMover : public StMaker
@@ -30,6 +33,7 @@ public:
    virtual Int_t  Finish();
 
 private:
+   void projectToVolume(StMcTrack const*,StMcHit const*, double* localProjection, double* localMomentum, TGeoHMatrix const*) const;
    float         mBField;
    StPxlDb*      mPxlDb;
    StIstDb*      mIstDb;
