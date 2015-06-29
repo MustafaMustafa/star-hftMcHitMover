@@ -34,6 +34,8 @@ public:
    virtual Int_t  Make();
    virtual Int_t  Finish();
 
+   virtual char const* GetCVS() const;
+
 private:
    void projectToVolume(StMcTrack const*,StMcHit const*, double* localProjection, double* localMomentum, TGeoHMatrix const*) const;
    bool isOnPxlSensor(double const* localPosition) const;
@@ -50,6 +52,12 @@ private:
 
    ClassDef(StHftMcHitMover, 0)
 };
+
+inline char const* StHftMcHitMover::GetCVS() const
+{
+   static const char cvs[]="Tag $Name:$ $Id:$ built "__DATE__" " __TIME__ ; 
+   return cvs;
+}
 
 inline bool StHftMcHitMover::isOnPxlSensor(double const* const localPosition) const
 {
