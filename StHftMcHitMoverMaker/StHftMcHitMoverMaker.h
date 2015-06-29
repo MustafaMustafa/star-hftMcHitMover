@@ -13,6 +13,8 @@
 #define StHftMcHitMover_hh
 
 #include "StMaker.h"
+#include "StPxlUtil/StPxlConstants.h"
+#include "StIstUtil/StIstConsts.h"
 
 class StPxlDb;
 class StIstDb;
@@ -34,6 +36,9 @@ public:
 
 private:
    void projectToVolume(StMcTrack const*,StMcHit const*, double* localProjection, double* localMomentum, TGeoHMatrix const*) const;
+   bool isOnPxlSensor(double const* localPosition) const;
+   bool isOnIstSensor(double const* localPosition) const;
+
    float         mBField;
    StPxlDb*      mPxlDb;
    StIstDb*      mIstDb;
@@ -45,4 +50,15 @@ private:
 
    ClassDef(StHftMcHitMover, 0)
 };
+
+inline bool StHftMcHitMover::isOnPxlSensor(double const* const localPosition) const
+{
+   return fabs(localPosition[0]) < StPxlConsts::kPxlActiveLengthX/2. && fabs(localPosition[2]) < StPxlConsts::kPxlActiveLengthY/2.;
+}
+
+inline bool StHftMcHitMover::isOnIstSensor(double const* const localPosition) const
+{
+  return fabs(localPosition[0]) < kIstSensorActiveSizeRPhi/2. && fabs(localPosition[2]) < kIstSensorActiveSizeZ/2.;
+}
+
 #endif
