@@ -10,6 +10,7 @@
  ***************************************************************************/
 
 #include "TGeoMatrix.h"
+#include "TGeoManager.h"
 
 #include "St_base/StMessMgr.h"
 #include "StarMagField/StarMagField.h"
@@ -95,6 +96,13 @@ Int_t StHftMcHitMover::Make()
       return kStWarn;
    }
 
+   if(!gGeoManager) GetDataBase("VmcGeometry");
+   if(!gGeoManager)
+   {
+     LOG_FATAL << "StHftMcHitMover - FATAL ERROR - gGeoManager is not available" <<endl;
+     return kStFatal;
+   }
+
    mPionsHists->addEvent(mcEvent);
    mKaonsHists->addEvent(mcEvent);
    mProtonsHists->addEvent(mcEvent);
@@ -125,6 +133,10 @@ Int_t StHftMcHitMover::Make()
         TGeoHMatrix const* const volumeM = (TGeoHMatrix*)mPxlDb->geoHMatrixSensorOnGlobal(mcPxlHit->sector(), mcPxlHit->ladder(), mcPxlHit->sensor());
         if (!volumeM) continue;
 
+        gGeoManager->RestoreMasterVolume();
+        gGeoManager->CdTop();
+        gGeoManager->cd(Form("/HALL_1/CAVE_1/TpcRefSys_1/IDSM_1/PXMO_1/PXLA_%i/LADR_%i/PXSI_%i/PLAC_1", mcPxlHit->sector(), mcPxlHit->ladder(), mcPxlHit->sensor()));
+
         double localProjection[3] = {0.,0.,0.};
         double localMomentum[3] = {0.,0.,0.};
         projectToVolume(trk,mcPxlHit,localProjection,localMomentum,volumeM);
@@ -150,6 +162,10 @@ Int_t StHftMcHitMover::Make()
 
         TGeoHMatrix const* const volumeM = (TGeoHMatrix*)mIstDb->getHMatrixSensorOnGlobal(mcIstHit->ladder(), mcIstHit->wafer());
         if (!volumeM) continue;
+
+        gGeoManager->RestoreMasterVolume();
+        gGeoManager->CdTop();
+        gGeoManager->cd(Form("/HALL_1/CAVE_1/TpcRefSys_1/IDSM_1/IBMO_1/IBAM_%i/IBLM_%i/IBSS_1", mcIstHit->ladder(), mcIstHit->wafer()));
 
         double localProjection[3] = {0.,0.,0.};
         double localMomentum[3] = {0.,0.,0.};
@@ -178,8 +194,10 @@ void StHftMcHitMover::projectToVolume(StMcTrack const* const trk, StMcHit const*
   double gPosition[3] = {0.,0.,0.};
   double gMomentum[3] = {0.,0.,0.};
 
-  volumeM->LocalToMaster(lPosition,gPosition);
-  volumeM->LocalToMaster(lMomentum,gMomentum);
+  // volumeM->LocalToMaster(lPosition,gPosition);
+  // volumeM->LocalToMaster(lMomentum,gMomentum);
+  gGeoManager->GetCurrentMatrix()->LocalToMaster(lPosition,gPosition);
+  gGeoManager->GetCurrentMatrix()->LocalToMaster(lMomentum,gMomentum);
 
   StPhysicalHelixD helix(gMomentum, gPosition, mBField * kilogauss, trk->particleDefinition()->charge());
 
