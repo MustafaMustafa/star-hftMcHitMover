@@ -96,6 +96,9 @@ Int_t StHftMcHitMover::Make()
       return kStWarn;
    }
 
+   StMcPxlHitCollection* const mcPxlProjCollection = new StMcPxlHitCollection();
+   StMcIstHitCollection* const mcIstProjCollection = new StMcIstHitCollection();
+
    if(!gGeoManager) GetDataBase("VmcGeometry");
    if(!gGeoManager)
    {
@@ -123,6 +126,7 @@ Int_t StHftMcHitMover::Make()
       else continue;
 
       StPtrVecMcPxlHit& pxlHits = trk->pxlHits();
+      StPtrVecMcPxlHit newPxlHits;
 
       for(StMcPxlHitIterator iHit = pxlHits.begin(); iHit != pxlHits.end(); ++iHit)
       {
@@ -143,16 +147,21 @@ Int_t StHftMcHitMover::Make()
 
         if(!isOnPxlSensor(localProjection)) continue;
 
-        StMcPxlHit const* const mcProj = new StMcPxlHit(localProjection, localMomentum, mcPxlHit->dE(),
+        StMcPxlHit* const mcProj = new StMcPxlHit(localProjection, localMomentum, mcPxlHit->dE(),
                                             mcPxlHit->dS(), mcPxlHit->tof(),
                                             mcPxlHit->key(), mcPxlHit->volumeId(), trk);
 
         StHistograms::Layer layer = (int)mcPxlHit->ladder() == 1? StHistograms::kPxl1 : StHistograms::kPxl2;
         hists->addHits(layer,mcPxlHit,mcProj);
-        delete mcProj;
+
+        newPxlHits.push_back(mcProj);
+        mcPxlProjCollection->addHit(mcProj);
       }
 
+      pxlHits = newPxlHits;
+
       StPtrVecMcIstHit& istHits = trk->istHits();
+      StPtrVecMcIstHit newIstHits;
 
       for(StMcIstHitIterator iHit = istHits.begin(); iHit != istHits.end(); ++iHit)
       {
@@ -165,7 +174,7 @@ Int_t StHftMcHitMover::Make()
 
         gGeoManager->RestoreMasterVolume();
         gGeoManager->CdTop();
-        gGeoManager->cd(Form("/HALL_1/CAVE_1/TpcRefSys_1/IDSM_1/IBMO_1/IBAM_%i/IBLM_%i/IBSS_1", mcIstHit->ladder(), mcIstHit->wafer()));
+        gGeoManager->cd(Form("/HALL_1/CAVE_1/TpcRefSys_1/IDSM_1/IBMO_1/IBAM_%i/IBLM_%i/IBSS_1", static_cast<int>(mcIstHit->ladder()), static_cast<int>(mcIstHit->wafer())));
 
         double localProjection[3] = {0.,0.,0.};
         double localMomentum[3] = {0.,0.,0.};
@@ -173,15 +182,21 @@ Int_t StHftMcHitMover::Make()
 
         if(!isOnIstSensor(localProjection)) continue;
 
-        StMcIstHit const* const mcProj = new StMcIstHit(localProjection, localMomentum, mcIstHit->dE(),
+        StMcIstHit* const mcProj = new StMcIstHit(localProjection, localMomentum, mcIstHit->dE(),
                                             mcIstHit->dS(), mcIstHit->tof(),
                                             mcIstHit->key(), mcIstHit->volumeId(), trk);
 
         hists->addHits(StHistograms::kIst,mcIstHit,mcProj);
 
-        delete mcProj;
+        newIstHits.push_back(mcProj);
+        mcIstProjCollection->addHit(mcProj);
       }
+
+      istHits = newIstHits;
    }
+
+   mcEvent->setPxlHitCollection(mcPxlProjCollection); // StMcEvent::setPxlHitCollection will delete the old collection
+   mcEvent->setIstHitCollection(mcIstProjCollection); // StMcEvent::setIstHitCollection will delete the old collection
 
    return kStOK;
 }
