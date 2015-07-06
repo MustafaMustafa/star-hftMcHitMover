@@ -176,8 +176,8 @@ Int_t StHftMcHitMover::Make()
         gGeoManager->CdTop();
         gGeoManager->cd(Form("/HALL_1/CAVE_1/TpcRefSys_1/IDSM_1/IBMO_1/IBAM_%i/IBLM_%i/IBSS_1", static_cast<int>(mcIstHit->ladder()), static_cast<int>(mcIstHit->wafer())));
 
-        double localProjection[3] = {0.,0.,0.};
-        double localMomentum[3] = {0.,0.,0.};
+        double localProjection[3] = {999.,999.,999.};
+        double localMomentum[3]   = {999.,999.,999.};
         projectToVolume(trk,mcIstHit,localProjection,localMomentum,volumeM);
 
         if(!isOnIstSensor(localProjection)) continue;
@@ -206,8 +206,8 @@ void StHftMcHitMover::projectToVolume(StMcTrack const* const trk, StMcHit const*
 {
   double const lPosition[3] = {mcHit->position().x(),mcHit->position().y(),mcHit->position().z()};
   double const lMomentum[3] = {mcHit->localMomentum().x(),mcHit->localMomentum().y(),mcHit->localMomentum().z()};
-  double gPosition[3] = {0.,0.,0.};
-  double gMomentum[3] = {0.,0.,0.};
+  double gPosition[3] = {999.,999.,999.};
+  double gMomentum[3] = {999.,999.,999.};
 
   // volumeM->LocalToMaster(lPosition,gPosition);
   // volumeM->LocalToMaster(lMomentum,gMomentum);
