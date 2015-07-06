@@ -141,8 +141,8 @@ Int_t StHftMcHitMover::Make()
         gGeoManager->CdTop();
         gGeoManager->cd(Form("/HALL_1/CAVE_1/TpcRefSys_1/IDSM_1/PXMO_1/PXLA_%i/LADR_%i/PXSI_%i/PLAC_1", mcPxlHit->sector(), mcPxlHit->ladder(), mcPxlHit->sensor()));
 
-        double localProjection[3] = {0.,0.,0.};
-        double localMomentum[3] = {0.,0.,0.};
+        double localProjection[3] = {999.,999.,999.};
+        double localMomentum[3]   = {999.,999.,999.};
         projectToVolume(trk,mcPxlHit,localProjection,localMomentum,volumeM);
 
         if(!isOnPxlSensor(localProjection)) continue;
