@@ -15,7 +15,7 @@
 #include "TString.h"
 
 #include "StMaker.h"
-#include "StPxlUtil/StPxlConstants.h"
+// #include "StPxlUtil/StPxlConstants.h"
 #include "StIstUtil/StIstConsts.h"
 
 class StPxlDb;
@@ -65,7 +65,8 @@ inline char const* StHftMcHitMover::GetCVS() const
 
 inline bool StHftMcHitMover::isOnPxlSensor(double const* const localPosition) const
 {
-   return fabs(localPosition[0]) < StPxlConsts::kPxlActiveLengthX/2. && fabs(localPosition[2]) < StPxlConsts::kPxlActiveLengthY/2.;
+   // return fabs(localPosition[0]) < StPxlConsts::kPxlActiveLengthX/2. && fabs(localPosition[2]) < StPxlConsts::kPxlActiveLengthY/2.;
+   return fabs(localPosition[0]) < 1.921/2. && fabs(localPosition[2]) < 1.9872/2.;
 }
 
 inline bool StHftMcHitMover::isOnIstSensor(double const* const localPosition) const
