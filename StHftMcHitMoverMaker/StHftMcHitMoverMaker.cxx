@@ -113,6 +113,11 @@ Int_t StHftMcHitMover::Make()
 
    StSPtrVecMcTrack const& tracks = mcEvent->tracks();
 
+   LOG_INFO << "Number of mcTracks = " << tracks.size() << endm;
+   LOG_INFO << "Number of TPC Hits in event = " << mcEvent->tpcHitCollection()->numberOfHits() << endm;
+   LOG_INFO << "Number of PXL Hits = " << mcEvent->pxlHitCollection()->numberOfHits() << endm;
+   LOG_INFO << "Number of IST Hits = " << mcEvent->istHitCollection()->numberOfHits() << endm;
+
    for (size_t iTrk = 0; iTrk < tracks.size(); ++iTrk)
    {
       StMcTrack* const trk = tracks[iTrk];
@@ -146,17 +151,20 @@ Int_t StHftMcHitMover::Make()
         double localMomentum[3]   = {999.,999.,999.};
         projectToVolume(trk,mcPxlHit,localProjection,localMomentum,volumeM);
 
-        if(!isOnPxlSensor(localProjection)) continue;
+        StMcPxlHit* mcProj = NULL;
 
-        StMcPxlHit* const mcProj = new StMcPxlHit(localProjection, localMomentum, mcPxlHit->dE(),
-                                            mcPxlHit->dS(), mcPxlHit->tof(),
-                                            mcPxlHit->key(), mcPxlHit->volumeId(), trk);
+        if(isOnPxlSensor(localProjection))
+        {
+          mcProj = new StMcPxlHit(localProjection, localMomentum, mcPxlHit->dE(),
+              mcPxlHit->dS(), mcPxlHit->tof(),
+              mcPxlHit->key(), mcPxlHit->volumeId(), trk);
+
+          newPxlHits.push_back(mcProj);
+          mcPxlProjCollection->addHit(mcProj);
+        }
 
         StHistograms::Layer layer = (int)mcPxlHit->ladder() == 1? StHistograms::kPxl1 : StHistograms::kPxl2;
         hists->addHits(layer,mcPxlHit,mcProj);
-
-        newPxlHits.push_back(mcProj);
-        mcPxlProjCollection->addHit(mcProj);
       }
 
       pxlHits = newPxlHits;
@@ -181,16 +189,18 @@ Int_t StHftMcHitMover::Make()
         double localMomentum[3]   = {999.,999.,999.};
         projectToVolume(trk,mcIstHit,localProjection,localMomentum,volumeM);
 
-        if(!isOnIstSensor(localProjection)) continue;
+        StMcIstHit* mcProj = NULL;
+        if(isOnIstSensor(localProjection))
+        {
+          mcProj = new StMcIstHit(localProjection, localMomentum, mcIstHit->dE(),
+              mcIstHit->dS(), mcIstHit->tof(),
+              mcIstHit->key(), mcIstHit->volumeId(), trk);
 
-        StMcIstHit* const mcProj = new StMcIstHit(localProjection, localMomentum, mcIstHit->dE(),
-                                            mcIstHit->dS(), mcIstHit->tof(),
-                                            mcIstHit->key(), mcIstHit->volumeId(), trk);
+          newIstHits.push_back(mcProj);
+          mcIstProjCollection->addHit(mcProj);
+        }
 
         hists->addHits(StHistograms::kIst,mcIstHit,mcProj);
-
-        newIstHits.push_back(mcProj);
-        mcIstProjCollection->addHit(mcProj);
       }
 
       istHits = newIstHits;
@@ -198,6 +208,9 @@ Int_t StHftMcHitMover::Make()
 
    mcEvent->setPxlHitCollection(mcPxlProjCollection); // StMcEvent::setPxlHitCollection will delete the old collection
    mcEvent->setIstHitCollection(mcIstProjCollection); // StMcEvent::setIstHitCollection will delete the old collection
+
+   LOG_INFO << "Number of new PXL Hits = " << mcEvent->pxlHitCollection()->numberOfHits() << endm;
+   LOG_INFO << "Number of new IST Hits = " << mcEvent->istHitCollection()->numberOfHits() << endm;
 
    return kStOK;
 }
