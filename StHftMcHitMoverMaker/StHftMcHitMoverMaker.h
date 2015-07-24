@@ -12,6 +12,8 @@
 #ifndef StHftMcHitMover_hh
 #define StHftMcHitMover_hh
 
+#include "TString.h"
+
 #include "StMaker.h"
 #include "StPxlUtil/StPxlConstants.h"
 #include "StIstUtil/StIstConsts.h"
@@ -35,12 +37,14 @@ public:
    virtual Int_t  Finish();
 
    virtual char const* GetCVS() const;
+   void setOutFileName(TString in) { mOutFileName = in; }
 
 private:
    void projectToVolume(StMcTrack const*,StMcHit const*, double* localProjection, double* localMomentum, TGeoHMatrix const*) const;
    bool isOnPxlSensor(double const* localPosition) const;
    bool isOnIstSensor(double const* localPosition) const;
 
+   TString       mOutFileName;
    float         mBField;
    StPxlDb*      mPxlDb;
    StIstDb*      mIstDb;
