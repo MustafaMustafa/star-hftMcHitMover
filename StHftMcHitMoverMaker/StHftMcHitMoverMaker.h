@@ -32,7 +32,6 @@ public:
    ~StHftMcHitMover() {}
 
    virtual Int_t  Init();
-   virtual Int_t  InitRun(Int_t runNumber);
    virtual Int_t  Make();
    virtual Int_t  Finish();
 

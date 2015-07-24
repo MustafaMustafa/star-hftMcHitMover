@@ -38,20 +38,21 @@ ClassImp(StHftMcHitMover);
 StHftMcHitMover::StHftMcHitMover(const Char_t *name) :
    StMaker(name), mPxlDb(NULL), mIstDb(NULL),
    mPionsHists(NULL), mKaonsHists(NULL), mProtonsHists(NULL)
-{
-   mPionsHists = new StHistograms("idealPions");
-   mKaonsHists = new StHistograms("idealKaons");
-   mProtonsHists = new StHistograms("idealProtons");
-}
+{}
 
 Int_t StHftMcHitMover::Init()
 {
    LOG_INFO << "StHftMcHitMover::Init() " << endm;
-   return kStOK;
-}
 
-Int_t StHftMcHitMover::InitRun(Int_t runNumber)
-{
+   if(!mOutFileName.Length()) mOutFileName = "hftMcHitMover";
+   mOutFileName = mOutFileName.ReplaceAll(".root","");
+   mOutFileName = mOutFileName.ReplaceAll(".event","");
+   mOutFileName = mOutFileName.ReplaceAll(".daq","");
+
+   mPionsHists = new StHistograms(Form("%s.Pions",mOutFileName.Data()));
+   mKaonsHists = new StHistograms(Form("%s.Kaons",mOutFileName.Data()));
+   mProtonsHists = new StHistograms(Form("%s.Protons",mOutFileName.Data()));
+
    TObjectSet* pxlDbDataSet = static_cast<TObjectSet*>(GetDataSet("pxl_db"));
 
    if (pxlDbDataSet)
@@ -61,7 +62,7 @@ Int_t StHftMcHitMover::InitRun(Int_t runNumber)
 
    if (!pxlDbDataSet || !mPxlDb)
    {
-      LOG_FATAL << "StHftMcHitMover::InitRun() : no pxlDb - Cannot proceed" << endm;
+      LOG_FATAL << "StHftMcHitMover::Init() : no pxlDb - Cannot proceed" << endm;
       return kStFatal;
    }
 
@@ -74,20 +75,20 @@ Int_t StHftMcHitMover::InitRun(Int_t runNumber)
 
    if (!istDbDataSet || !mIstDb)
    {
-      LOG_FATAL << "StHftMcHitMover::InitRun() : no istDb - Cannot proceed" << endm;
+      LOG_FATAL << "StHftMcHitMover::Init() : no istDb - Cannot proceed" << endm;
       return kStErr;
    }
 
+      return kStOK;
+}
+
+Int_t StHftMcHitMover::Make()
+{
    float center[3] = {0, 0, 0};
    float B[3] = {0, 0, 0};
    StarMagField::Instance()->BField(center, B);
    mBField   = B[2];
 
-   return kStOK;
-}
-
-Int_t StHftMcHitMover::Make()
-{
    StMcEvent* const mcEvent = (StMcEvent *) GetInputDS("StMcEvent");
 
    if (!mcEvent)
