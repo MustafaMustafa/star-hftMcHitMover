@@ -15,13 +15,13 @@
 #include "TString.h"
 
 #include "StMaker.h"
-// #include "StPxlUtil/StPxlConstants.h"
-#include "StIstUtil/StIstConsts.h"
 
 class StPxlDb;
 class StIstDb;
 class TGeoHMatrix;
 class StMcHit;
+class StMcPxlHit;
+class StMcIstHit;
 class StMcTrack;
 class StHistograms;
 
@@ -36,12 +36,13 @@ public:
    virtual Int_t  Finish();
 
    virtual char const* GetCVS() const;
-   void setOutFileName(TString in) { mOutFileName = in; }
+   void setOutFileName(TString in);
 
 private:
-   void projectToVolume(StMcTrack const*,StMcHit const*, double* localProjection, double* localMomentum, TGeoHMatrix const*) const;
-   bool isOnPxlSensor(double const* localPosition) const;
-   bool isOnIstSensor(double const* localPosition) const;
+   void projectToVolume(StMcTrack const*,StMcHit const*, double* localProjection, double* localMomentum, TGeoHMatrix const*,double* gPosition,double* newGPosition) const;
+   enum ProjectionStatus {GoodProjection,DifferentSensor,OutOfAcceptance};
+   ProjectionStatus isOnPxlSensor(double const* localPosition,StMcPxlHit const*,int* correctSensor) const;
+   ProjectionStatus isOnIstSensor(double const* localPosition,StMcIstHit const*,int* correctSensor) const;
 
    TString       mOutFileName;
    float         mBField;
@@ -56,21 +57,11 @@ private:
    ClassDef(StHftMcHitMover, 0)
 };
 
+inline void StHftMcHitMover::setOutFileName(TString in) { mOutFileName = in; }
+
 inline char const* StHftMcHitMover::GetCVS() const
 {
-   static const char cvs[]="Tag $Name:$ $Id:$ built "__DATE__" " __TIME__ ; 
+   static const char cvs[]="" ; 
    return cvs;
 }
-
-inline bool StHftMcHitMover::isOnPxlSensor(double const* const localPosition) const
-{
-   // return fabs(localPosition[0]) < StPxlConsts::kPxlActiveLengthX/2. && fabs(localPosition[2]) < StPxlConsts::kPxlActiveLengthY/2.;
-   return fabs(localPosition[0]) < 1.921/2. && fabs(localPosition[2]) < 1.9872/2.;
-}
-
-inline bool StHftMcHitMover::isOnIstSensor(double const* const localPosition) const
-{
-  return fabs(localPosition[0]) < kIstSensorActiveSizeRPhi/2. && fabs(localPosition[2]) < kIstSensorActiveSizeZ/2.;
-}
-
 #endif
